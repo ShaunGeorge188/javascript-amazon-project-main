@@ -5,6 +5,8 @@ import { formatCurrency } from './utils/money.js';
 
 let productsHTML = '';
 
+const addedMessageTimeouts = {};
+
 products.forEach((product) => {
     productsHTML += `
         <div class="product-container">
@@ -30,7 +32,7 @@ products.forEach((product) => {
           </div>
 
           <div class="product-quantity-container">
-            <select>
+            <select class="js-quantity-selector-${product.id}">
               <option selected value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
@@ -46,7 +48,7 @@ products.forEach((product) => {
 
           <div class="product-spacer"></div>
 
-          <div class="added-to-cart">
+          <div class="added-to-cart added-to-cart-${product.id}">
             <img src="images/icons/checkmark.png">
             Added
           </div>
@@ -65,29 +67,40 @@ products.forEach((product) => {
 document.querySelector('.js-products-grid')
   .innerHTML = productsHTML;
 
-
 function updateCartQuantity(){
   let cartQuantity = 0;
 
   cart.forEach((cartItem) => {
     cartQuantity += cartItem.quantity;
   });
-  
 
   document.querySelector('.add-quant')
     .innerHTML = cartQuantity;
-
 }
-
 
 document.querySelectorAll('.js-add-to-cart')
   .forEach((button) => {
     button.addEventListener('click', () => {
       const productId = button.dataset.productId;
 
-      addToCart(productId);
+      const quantitySelector = document.querySelector(`.js-quantity-selector-${productId}`);
+      const quantity = Number(quantitySelector.value);
 
+      addToCart(productId, quantity);
 
       updateCartQuantity();
+
+      const addedMessage = document.querySelector(`.added-to-cart-${productId}`);
+
+      addedMessage.classList.add("added-mssg");
+
+      if(addedMessageTimeouts[productId]){
+        clearTimeout(addedMessageTimeouts[productId]);
+      }
+
+      addedMessageTimeouts[productId] = setTimeout(() => {
+        addedMessage.classList.remove('added-mssg');
+      }, 2000);
+
     });
-});
+  });
